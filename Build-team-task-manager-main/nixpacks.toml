@@ -1,0 +1,23 @@
+providers = ["python", "node"]
+
+[variables]
+NODE_VERSION = "20"
+
+[phases.setup]
+nixPkgs = ["python311Full", "python311Packages.virtualenv"]
+
+[phases.install]
+cmds = [
+  "python -m venv /opt/venv",
+  ". /opt/venv/bin/activate && cd frontend && npm install",
+  ". /opt/venv/bin/activate && pip install -r backend/requirements.txt"
+]
+
+[phases.build]
+cmds = [
+  ". /opt/venv/bin/activate && cd frontend && npm run build",
+  ". /opt/venv/bin/activate && cd backend && python manage.py collectstatic --noinput"
+]
+
+[start]
+cmd = ". /opt/venv/bin/activate && cd backend && python manage.py migrate --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
